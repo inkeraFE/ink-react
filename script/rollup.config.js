@@ -48,12 +48,7 @@ export default {
   plugins: [
     postcss({
       extensions: ['.less'],
-      plugins: [
-        simplevars(),
-        nested(),
-        presetEnv(),
-        cssnano()
-      ]
+      plugins: [simplevars(), nested(), presetEnv(), cssnano()]
     }),
     resolve({
       mainFields: ['module', 'main']
@@ -63,13 +58,8 @@ export default {
       include: 'node_modules/**'
     }),
     babel({
-      presets: [
-        '@babel/env',
-        '@babel/react'
-      ],
-      plugins: [
-        'transform-react-jsx'
-      ],
+      presets: ['@babel/env', '@babel/react'],
+      plugins: ['transform-react-jsx'],
       exclude: 'node_modules/**'
     }),
     replace({
