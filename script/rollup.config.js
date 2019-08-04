@@ -12,12 +12,12 @@ import postcss from 'rollup-plugin-postcss'
 // add postcss plugins
 import simplevars from 'postcss-simple-vars'
 import nested from 'postcss-nested'
-import cssnext from 'postcss-cssnext'
+import presetEnv from 'postcss-preset-env'
 import cssnano from 'cssnano'
 
 export default {
   input: './packages/index.js',
-  external: ['react'],
+  external: ['React'],
   output: [
     {
       file: './dist/ink.cjs.js',
@@ -47,11 +47,11 @@ export default {
   ],
   plugins: [
     postcss({
-      extensions: ['.css'],
+      extensions: ['.less'],
       plugins: [
         simplevars(),
         nested(),
-        cssnext({ warnForDuplicates: false }),
+        presetEnv(),
         cssnano()
       ]
     }),
@@ -59,11 +59,18 @@ export default {
       mainFields: ['module', 'main']
     }),
     json(),
-    babel({
-      exclude: 'node_modules/**'
-    }),
     commonjs({
       include: 'node_modules/**'
+    }),
+    babel({
+      presets: [
+        '@babel/env',
+        '@babel/react'
+      ],
+      plugins: [
+        'transform-react-jsx'
+      ],
+      exclude: 'node_modules/**'
     }),
     replace({
       ENV: JSON.stringify(process.env.NODE_ENV || 'development')

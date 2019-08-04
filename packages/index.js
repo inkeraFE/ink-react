@@ -1,1 +1,4 @@
-export default 'hello world'
+import Page from './page'
+import Flex from './flex'
+
+export { Page, Flex }
