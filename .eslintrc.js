@@ -1,17 +1,17 @@
 module.exports = {
   parser: 'babel-eslint',
-  plugins: ['prettier', "react-hooks"],
+  plugins: ['prettier', 'react-hooks'],
   rules: {
     'prettier/prettier': 'error',
-    "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
-    "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
     camelcase: 0,
     semi: 0
   },
   extends: [
-    'plugin:react/recommended'
+    'plugin:react/recommended',
     'standard',
-    'standard-jsx'
+    'standard-jsx',
     'prettier',
     'prettier/standard'
   ]

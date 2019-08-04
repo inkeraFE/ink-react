@@ -86,6 +86,9 @@ const Flex = ({
 
 Flex.displayName = 'Flex'
 Flex.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+  style: PropTypes.object,
   flex: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
   auto: PropTypes.bool,
   none: PropTypes.bool,
