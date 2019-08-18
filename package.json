@@ -1,6 +1,6 @@
 {
   "name": "ink-rui",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "A React UI Toolkit for Mobile",
   "main": "dist/ink.cjs.js",
   "module": "dist/ink.es.js",

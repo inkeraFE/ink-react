@@ -6,6 +6,7 @@ import json from 'rollup-plugin-json'
 import commonjs from 'rollup-plugin-commonjs'
 import { terser } from 'rollup-plugin-terser'
 import external from 'rollup-plugin-peer-deps-external'
+import pkg from '../package.json'
 
 // add rollup-plugin-postcss
 import postcss from 'rollup-plugin-postcss'
@@ -23,26 +24,25 @@ export default {
   input: './packages/index.js',
   output: [
     {
-      file: './dist/ink.cjs.js',
+      file: pkg.main,
       format: 'cjs',
-      name: 'inkReact',
       exports: 'named',
       sourcemap: true
     },
     {
-      file: './dist/ink.umd.js',
+      esModule: false,
+      file: pkg.unpkg,
       format: 'umd',
       name: 'inkReact', // mounted in windows
       exports: 'named',
-      sourcemap: true,
       globals: {
         react: 'React',
         'react-dom': 'ReactDOM'
       }
     },
     {
-      file: './dist/ink.es.js',
-      format: 'es',
+      file: pkg.module,
+      format: 'esm',
       sourcemap: true
     }
   ],
