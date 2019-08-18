@@ -1,0 +1,24 @@
+.ink-progress {
+  position: relative;
+  height: 20px;
+  line-height: 20px;
+
+  .progress-default-line {
+    position: absolute;
+    top: 50%;
+    transform: translate3d(0, -50%, 0);
+    width: 100%;
+    border-top-color: #ccc;
+    border-top-style: solid;
+    border-top-width: 1px;
+  }
+
+  .progress-active-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate3d(0, -50%, 0);
+    width: 50%;
+    transition: width 150ms linear;
+  }
+}

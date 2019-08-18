@@ -5,6 +5,7 @@ import replace from 'rollup-plugin-replace'
 import json from 'rollup-plugin-json'
 import commonjs from 'rollup-plugin-commonjs'
 import { terser } from 'rollup-plugin-terser'
+import external from 'rollup-plugin-peer-deps-external'
 
 // add rollup-plugin-postcss
 import postcss from 'rollup-plugin-postcss'
@@ -17,7 +18,6 @@ import cssnano from 'cssnano'
 
 export default {
   input: './packages/index.js',
-  external: ['React'],
   output: [
     {
       file: './dist/ink.cjs.js',
@@ -46,6 +46,10 @@ export default {
     }
   ],
   plugins: [
+    external({
+      includeDependencies: true,
+      packageJsonPath: '../package.json'
+    }),
     postcss({
       extensions: ['.less'],
       plugins: [simplevars(), nested(), presetEnv(), cssnano()]

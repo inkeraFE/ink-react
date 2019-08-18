@@ -1,6 +1,6 @@
 {
   "name": "ink-rui",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A React UI Toolkit for Mobile",
   "main": "dist/ink.cjs.js",
   "module": "dist/ink.es.js",
@@ -40,6 +40,10 @@
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-dom": ">=16.8.6"
+  },
   "devDependencies": {
     "@babel/cli": "^7.5.0",
     "@babel/core": "^7.5.0",
@@ -72,12 +76,12 @@
     "precss": "^3.1.2",
     "prettier": "^1.18.2",
     "prop-types": "^15.7.2",
-    "react": "^16.8.6",
     "rollup": "^1.16.6",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-peer-deps-external": "^2.2.0",
     "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-replace": "^2.2.0",
     "rollup-plugin-terser": "^5.1.0",
