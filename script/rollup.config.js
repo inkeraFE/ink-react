@@ -16,6 +16,9 @@ import nested from 'postcss-nested'
 import presetEnv from 'postcss-preset-env'
 import cssnano from 'cssnano'
 
+const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.json']
+const env = process.env.NODE_ENV
+
 export default {
   input: './packages/index.js',
   output: [
@@ -51,20 +54,23 @@ export default {
       extensions: ['.less'],
       plugins: [simplevars(), nested(), presetEnv(), cssnano()]
     }),
-    resolve({
-      mainFields: ['module', 'main']
-    }),
     json(),
+    babel({
+      babelrc: false,
+      presets: [
+        ['@babel/preset-env', { modules: false }],
+        '@babel/preset-react'
+      ],
+      extensions: EXTENSIONS,
+      exclude: 'node_modules/**'
+    }),
     commonjs({
       include: 'node_modules/**'
     }),
-    babel({
-      presets: ['@babel/env', '@babel/react'],
-      plugins: ['transform-react-jsx'],
-      exclude: 'node_modules/**'
-    }),
-    replace({
-      ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+    replace({ 'process.env.NODE_ENV': JSON.stringify(env) }),
+    resolve({
+      extensions: EXTENSIONS,
+      preferBuiltins: false
     }),
     process.env.NODE_ENV !== 'production' && terser()
   ],
