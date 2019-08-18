@@ -22,7 +22,6 @@ export default {
     {
       file: './dist/ink.cjs.js',
       format: 'cjs',
-      env: 'production',
       name: 'inkReact',
       exports: 'named',
       sourcemap: true
@@ -30,24 +29,22 @@ export default {
     {
       file: './dist/ink.umd.js',
       format: 'umd',
-      env: 'production',
       name: 'inkReact', // mounted in windows
       exports: 'named',
       sourcemap: true,
       globals: {
-        vue: 'Vue'
+        react: 'React',
+        'react-dom': 'ReactDOM'
       }
     },
     {
       file: './dist/ink.es.js',
       format: 'es',
-      env: 'production',
       sourcemap: true
     }
   ],
   plugins: [
     external({
-      includeDependencies: true,
       packageJsonPath: '../package.json'
     }),
     postcss({

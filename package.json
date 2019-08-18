@@ -1,6 +1,6 @@
 {
   "name": "ink-rui",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A React UI Toolkit for Mobile",
   "main": "dist/ink.cjs.js",
   "module": "dist/ink.es.js",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "react": "^16.8.6",
-    "react-dom": ">=16.8.6"
+    "react-dom": "^16.8.6"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.0",
