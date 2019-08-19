@@ -1,2 +1,5 @@
 /lib/
 /dist/
+/esm/
+/cjs/
+
