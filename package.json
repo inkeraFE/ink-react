@@ -1,14 +1,14 @@
 {
   "name": "ink-rui",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A React UI Toolkit for Mobile",
   "main": "cjs/index.js",
   "module": "esm/index.js",
-  "unpkg": "dist/ink.umd.js",
+  "unpkg": "umd/index.js",
   "scripts": {
     "test": "jest",
     "lint": "eslint ./packages; npm run lintCss",
-    "start": "cross-env NODE_ENV=development rollup -c --watch",
+    "start": "cross-env NODE_ENV=production rollup -c --watch",
     "build": "cross-env NODE_ENV=production rollup -c; npm run buildLib; npm run buildCss",
     "buildLib": "babel packages --out-dir lib",
     "buildCss": "postcss packages/**/*.less --base packages --dir lib",
