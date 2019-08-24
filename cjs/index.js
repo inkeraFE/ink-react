@@ -9,6 +9,21 @@ var React__default = _interopDefault(React);
 var PropTypes = _interopDefault(require('prop-types'));
 var classNames = _interopDefault(require('classnames'));
 
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
 function _extends() {
   _extends = Object.assign || function (target) {
     for (var i = 1; i < arguments.length; i++) {
@@ -25,6 +40,40 @@ function _extends() {
   };
 
   return _extends.apply(this, arguments);
+}
+
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+
+    if (i % 2) {
+      ownKeys(source, true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(source).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+
+  return target;
 }
 
 function _objectWithoutPropertiesLoose(source, excluded) {
@@ -525,7 +574,290 @@ Component.defaultProps = {
   onSubmit: function onSubmit() {}
 };
 
+var css$9 = ".ink-carousel{position:relative;overflow:hidden}.ink-carousel .carousel-wrapper{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-transition-property:-webkit-transform;transition-property:-webkit-transform;transition-property:transform;transition-property:transform,-webkit-transform;list-style:none;margin:0;padding:0}.ink-carousel .carousel-wrapper .carousel-item{-webkit-box-flex:1;-webkit-flex:1 0 100%;-ms-flex:1 0 100%;flex:1 0 100%;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.ink-carousel .pagination-point-wrapper{position:absolute;bottom:15px;left:50%;-webkit-transform:translate3d(-50%,0,0);transform:translate3d(-50%,0,0);list-style:none;margin:0;padding:0}.ink-carousel .pagination-point-wrapper .point{display:inline-block;width:8px;height:8px;border-radius:100%;margin:0 4px;background:#000;opacity:.6}.ink-carousel .pagination-point-wrapper .point.is-active{background:#f0f1f2}";
+styleInject(css$9);
+
+var Carousel = function Carousel(_ref) {
+  var children = _ref.children,
+      disabledGesture = _ref.disabledGesture,
+      time = _ref.time,
+      autoPlay = _ref.autoPlay,
+      dots = _ref.dots,
+      index = _ref.index,
+      loop = _ref.loop;
+
+  var _useState = React.useState({
+    transitionDuration: '0ms',
+    transform: 'translate3d(0, 0, 0)'
+  }),
+      _useState2 = _slicedToArray(_useState, 2),
+      style = _useState2[0],
+      setStyle = _useState2[1];
+
+  var _useState3 = React.useState(0),
+      _useState4 = _slicedToArray(_useState3, 2),
+      activeIdx = _useState4[0],
+      setIndex = _useState4[1];
+
+  var _useState5 = React.useState(0),
+      _useState6 = _slicedToArray(_useState5, 2),
+      tempMX = _useState6[0],
+      setTempMX = _useState6[1];
+
+  var _useState7 = React.useState({
+    touchStartX: 0,
+    touchStartY: 0
+  }),
+      _useState8 = _slicedToArray(_useState7, 2),
+      touch = _useState8[0],
+      setTouch = _useState8[1];
+
+  var _useState9 = React.useState({
+    preMoveX: 0,
+    canMove: true
+  }),
+      _useState10 = _slicedToArray(_useState9, 2),
+      state = _useState10[0],
+      setState = _useState10[1];
+
+  var timer = null;
+  var carouselRef = React.useRef(null);
+
+  var changeIndex = function changeIndex(isInit) {
+    var offsetWidth = carouselRef.current.offsetWidth;
+    var preMoveX = -1 * offsetWidth * index;
+    setStyle({
+      transitionDuration: !isInit ? '300ms' : '0ms',
+      transform: "translate3d(".concat(preMoveX, "px, 0, 0)")
+    });
+    setState(_objectSpread2({}, state, {
+      preMoveX: preMoveX
+    }));
+  };
+
+  var handleLoop = function handleLoop(moveX) {
+    var offsetWidth = carouselRef.current.offsetWidth;
+    var preMoveX = state.preMoveX;
+
+    var sty = _objectSpread2({}, style);
+
+    if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
+      preMoveX = 0;
+      sty.transform = 'translate3d(0, 0, 0)';
+    } else if (moveX > 0) {
+      preMoveX = -1 * offsetWidth * (_carouseLength - 1);
+    }
+
+    setStyle(sty);
+    setState(_objectSpread2({}, state, {
+      preMoveX: preMoveX,
+      style: style
+    }));
+  };
+
+  var animation = function animation() {
+    var offsetWidth = carouselRef.current.offsetWidth;
+    timer = setTimeout(function () {
+      var moveX;
+      var updateTimer;
+      var preMoveX = state.preMoveX;
+      var compareMovex = preMoveX - offsetWidth;
+
+      if (loop) {
+        handleLoop(compareMovex);
+        moveX = preMoveX - offsetWidth;
+      } else if (Math.abs(compareMovex) > offsetWidth * (_carouseLength - 1)) {
+        preMoveX = 0;
+        moveX = 0;
+      } else {
+        moveX = preMoveX - offsetWidth;
+      }
+
+      setState(_objectSpread2({}, state, {
+        preMoveX: preMoveX
+      }));
+
+      if (loop) {
+        // 切换延迟一帧
+        updateTimer = setTimeout(function () {
+          update(moveX, offsetWidth);
+          clearTimeout(updateTimer);
+        }, 16);
+      } else {
+        update(moveX, offsetWidth);
+      }
+    }, time);
+  };
+
+  var startAnim = function startAnim() {
+    if (timer) clearTimeout(timer);
+    if (autoPlay) animation();
+  };
+
+  var listenAnimEnd = function listenAnimEnd(animWidth, sty) {
+    document.addEventListener('transitionend', function () {
+      var style = _objectSpread2({}, sty);
+
+      style.transitionDuration = '0ms';
+      setStyle(style);
+      setTempMX(0);
+      setState(_objectSpread2({}, state, {
+        preMoveX: animWidth
+      }));
+      startAnim();
+    }, {
+      capture: false,
+      once: true
+    });
+  };
+
+  var update = function update(moveX, offsetWidth) {
+    var idx = Math.abs(moveX) / offsetWidth;
+
+    if (loop && idx >= _carouseLength - 1) {
+      idx = 0;
+    }
+
+    var sty = {
+      transitionDuration: "300ms",
+      transform: "translate3d(".concat(moveX, "px, 0, 0)")
+    };
+    setStyle(sty);
+    setIndex(idx);
+    listenAnimEnd(moveX, sty);
+  };
+
+  var onTouchStart = function onTouchStart(event) {
+    if (timer) clearTimeout(timer);
+
+    if (disabledGesture || !state.canMove) {
+      return;
+    }
+
+    setTouch({
+      touchStartX: event.targetTouches[0].pageX,
+      touchStartY: event.targetTouches[0].pageY
+    });
+  };
+
+  var onTouchMove = function onTouchMove(event) {
+    if (disabledGesture) return;
+    var carouselDom = event.currentTarget;
+    var touchEndX = event.changedTouches[0].pageX;
+    var offsetWidth = carouselDom.offsetWidth;
+    var tempMoveX = touchEndX - touch.touchStartX;
+    var tempCanMove = state.canMove;
+    var moveY = event.changedTouches[0].pageY - touch.touchStartY;
+    var absMoveX = Math.abs(tempMoveX);
+
+    var sty = _objectSpread2({}, style);
+
+    if (absMoveX < 5 || absMoveX >= 5 && moveY >= 1.73 * absMoveX) {
+      tempCanMove = false;
+    } else if (event.cancelable) {
+      tempCanMove = true;
+      event.preventDefault();
+    }
+
+    if (!tempCanMove) {
+      setTempMX(tempMoveX);
+      setState(_objectSpread2({}, state, {
+        canMove: tempCanMove
+      }));
+      return;
+    }
+
+    var moveX = tempMoveX + state.preMoveX;
+
+    if (!loop && (moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1))) {
+      setTempMX(0);
+      setState(_objectSpread2({}, state, {
+        canMove: tempCanMove
+      }));
+      return;
+    }
+
+    if (loop) handleLoop(moveX);
+    sty.transform = "translate3d(".concat(moveX, "px, 0, 0)");
+    setStyle(sty);
+    setTempMX(tempMoveX);
+    setState(_objectSpread2({}, state, {
+      canMove: tempCanMove
+    }));
+  };
+
+  var onTouchEnd = function onTouchEnd(event) {
+    if (disabledGesture || !state.canMove) return;
+    var carouselDom = event.currentTarget;
+    var offsetWidth = carouselDom.offsetWidth;
+    var animWidth = Math.abs(tempMX) > offsetWidth / 2 ? tempMX > 0 ? state.preMoveX + offsetWidth : state.preMoveX - offsetWidth : state.preMoveX;
+    update(animWidth, offsetWidth);
+  };
+
+  React.useEffect(function () {
+    if (React__default.Children.count(children) > 0) {
+      changeIndex(true);
+      startAnim();
+    }
+  }, []);
+  var dotsArr = [];
+  var carouselList = React__default.Children.map(children, function (el, index) {
+    var dot = React__default.createElement("li", {
+      key: index,
+      className: classNames('point', {
+        'is-active': activeIdx === index
+      })
+    });
+    dotsArr.push(dot);
+    return React__default.createElement("div", {
+      className: "carousel-item",
+      key: index + 1
+    }, el);
+  });
+  var dotsRender = dots ? React__default.createElement("ul", {
+    className: "pagination-point-wrapper"
+  }, dotsArr) : null;
+
+  if (loop) {
+    carouselList.push(React__default.cloneElement(carouselList[0], {
+      key: 0
+    }));
+  }
+
+  var _carouseLength = React__default.Children.count(children) + Number(loop);
+
+  return React__default.createElement("div", {
+    className: "ink-carousel"
+  }, React__default.createElement("ul", {
+    className: "carousel-wrapper",
+    style: style,
+    ref: carouselRef,
+    onTouchStart: onTouchStart,
+    onTouchMove: onTouchMove,
+    onTouchEnd: onTouchEnd
+  }, carouselList), dotsRender);
+};
+
+Carousel.propTypes = {
+  children: PropTypes.array,
+  disabledGesture: PropTypes.bool,
+  time: PropTypes.number,
+  loop: PropTypes.bool,
+  autoPlay: PropTypes.bool,
+  dots: PropTypes.bool,
+  index: PropTypes.number
+};
+Carousel.defaultProps = {
+  disabledGesture: false,
+  time: 2000,
+  dots: true,
+  loop: false,
+  autoPlay: false,
+  index: 0
+};
+
 exports.Button = Button;
+exports.Carousel = Carousel;
 exports.Flex = Flex;
 exports.Header = Header;
 exports.Loading = Loading;

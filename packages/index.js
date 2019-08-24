@@ -7,6 +7,7 @@ import Radio from './radio'
 import Switch from './switch'
 import Progress from './progress'
 import SearchBar from './search_bar'
+import Carousel from './carousel'
 
 export {
   Page,
@@ -17,5 +18,6 @@ export {
   Radio,
   Switch,
   Progress,
-  SearchBar
+  SearchBar,
+  Carousel
 }
