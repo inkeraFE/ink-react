@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import './style.less'
 
+// todo
+
 let timer = null
 
 const Carousel = ({
@@ -188,6 +190,12 @@ const Carousel = ({
       if (autoPlay) startAnim()
     }
   }, [])
+
+  useEffect(() => {
+    if (React.Children.count(children) >= index) {
+      go(index)
+    }
+  }, [index])
 
   let dotsArr = []
   const carouselList = React.Children.map(children, (el, index) => {

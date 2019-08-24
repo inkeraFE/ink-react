@@ -8,6 +8,7 @@ import Switch from './switch'
 import Progress from './progress'
 import SearchBar from './search_bar'
 import Carousel from './carousel'
+import Tabs from './tabs'
 
 export {
   Page,
@@ -19,5 +20,6 @@ export {
   Switch,
   Progress,
   SearchBar,
-  Carousel
+  Carousel,
+  Tabs
 }

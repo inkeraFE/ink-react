@@ -251,7 +251,7 @@ Flex.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
   style: PropTypes.object,
-  flex: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
+  flex: PropTypes.oneOfType([PropTypes.number, PropTypes.bool, PropTypes.string]),
   auto: PropTypes.bool,
   none: PropTypes.bool,
   width: PropTypes.string,
@@ -781,6 +781,11 @@ var Carousel = function Carousel(_ref) {
       if (autoPlay) startAnim();
     }
   }, []);
+  React.useEffect(function () {
+    if (React__default.Children.count(children) >= index) {
+      go(index);
+    }
+  }, [index]);
   var dotsArr = [];
   var carouselList = React__default.Children.map(children, function (el, index) {
     var dot = React__default.createElement("li", {
@@ -837,6 +842,53 @@ Carousel.defaultProps = {
   index: 0
 };
 
+var css$a = ".ink-tabs .tab-navigator{width:100%;border-bottom:1px solid #ccc;padding:0 15px}.ink-tabs .tab-navigator .nav{text-align:center;height:45px;line-height:45px;font-size:18px}.ink-tabs .tab-navigator .active{color:#108ee9}";
+styleInject(css$a);
+
+var Tabs = function Tabs(_ref) {
+  var enableGesture = _ref.enableGesture,
+      tabs = _ref.tabs,
+      children = _ref.children;
+
+  var _useState = React.useState(0),
+      _useState2 = _slicedToArray(_useState, 2),
+      index = _useState2[0],
+      setIndex = _useState2[1];
+
+  return React__default.createElement("div", {
+    className: "ink-tabs"
+  }, React__default.createElement(Flex, {
+    justifyBetween: true,
+    alignCenter: true,
+    className: "tab-navigator"
+  }, tabs.map(function (tab, i) {
+    return React__default.createElement(Flex, {
+      key: i,
+      justifyCenter: true,
+      alignCenter: true,
+      flex: "1 0 ".concat(1 / tabs.length * 100, "%"),
+      className: classNames('nav', {
+        active: i === index
+      }),
+      onClick: function onClick() {
+        return setIndex(i);
+      }
+    }, tab);
+  })), React__default.createElement(Carousel, {
+    disabledGesture: !enableGesture,
+    index: index
+  }, children));
+};
+
+Tabs.propTypes = {
+  children: PropTypes.array,
+  enableGesture: PropTypes.bool,
+  tabs: PropTypes.array
+};
+Tabs.defaultProps = {
+  enableGesture: true
+};
+
 exports.Button = Button;
 exports.Carousel = Carousel;
 exports.Flex = Flex;
@@ -847,4 +899,5 @@ exports.Progress = Progress;
 exports.Radio = Radio;
 exports.SearchBar = Component;
 exports.Switch = Switch;
+exports.Tabs = Tabs;
 //# sourceMappingURL=index.js.map

@@ -89,7 +89,11 @@ Flex.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
   style: PropTypes.object,
-  flex: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
+  flex: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.bool,
+    PropTypes.string
+  ]),
   auto: PropTypes.bool,
   none: PropTypes.bool,
   width: PropTypes.string,
