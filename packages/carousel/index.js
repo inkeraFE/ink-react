@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import './style.less'
 
+let timer = null
+
 const Carousel = ({
   children,
   disabledGesture,
@@ -19,68 +21,57 @@ const Carousel = ({
 
   const [activeIdx, setIndex] = useState(0)
   const [tempMX, setTempMX] = useState(0)
+  const [preMX, setPreMX] = useState(0)
   const [touch, setTouch] = useState({
     touchStartX: 0,
     touchStartY: 0
   })
 
-  const [state, setState] = useState({
-    preMoveX: 0,
-    canMove: true
-  })
-  let timer = null
+  let canMove = true
   const carouselRef = useRef(null)
 
-  const changeIndex = isInit => {
+  const clearTimer = () => {
+    timer && clearTimeout(timer)
+    timer = null
+  }
+
+  const go = (index, isInit) => {
     const { offsetWidth } = carouselRef.current
     const preMoveX = -1 * offsetWidth * index
     setStyle({
       transitionDuration: !isInit ? '300ms' : '0ms',
       transform: `translate3d(${preMoveX}px, 0, 0)`
     })
-    setState({
-      ...state,
-      preMoveX
-    })
+    setPreMX(preMoveX)
   }
   const handleLoop = moveX => {
     const { offsetWidth } = carouselRef.current
-    let preMoveX = state.preMoveX
+    let preMoveX = preMX
     const sty = { ...style }
     if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
       preMoveX = 0
       sty.transform = 'translate3d(0, 0, 0)'
+      setStyle(sty)
     } else if (moveX > 0) {
       preMoveX = -1 * offsetWidth * (_carouseLength - 1)
     }
-    setStyle(sty)
-    setState({
-      ...state,
-      preMoveX,
-      style
-    })
+    setPreMX(preMoveX)
   }
 
-  const animation = () => {
+  const next = () => {
+    if (timer) return
     const { offsetWidth } = carouselRef.current
     timer = setTimeout(() => {
-      let moveX
       let updateTimer
-      let preMoveX = state.preMoveX
-      const compareMovex = preMoveX - offsetWidth
+      let preMoveX = preMX
+      let moveX = preMoveX - offsetWidth
       if (loop) {
-        handleLoop(compareMovex)
-        moveX = preMoveX - offsetWidth
-      } else if (Math.abs(compareMovex) > offsetWidth * (_carouseLength - 1)) {
+        handleLoop(moveX)
+      } else if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
         preMoveX = 0
         moveX = 0
-      } else {
-        moveX = preMoveX - offsetWidth
+        setPreMX(preMoveX)
       }
-      setState({
-        ...state,
-        preMoveX
-      })
       if (loop) {
         // 切换延迟一帧
         updateTimer = setTimeout(() => {
@@ -94,8 +85,8 @@ const Carousel = ({
   }
 
   const startAnim = () => {
-    if (timer) clearTimeout(timer)
-    if (autoPlay) animation()
+    clearTimer()
+    next()
   }
 
   const listenAnimEnd = (animWidth, sty) => {
@@ -106,11 +97,8 @@ const Carousel = ({
         style.transitionDuration = '0ms'
         setStyle(style)
         setTempMX(0)
-        setState({
-          ...state,
-          preMoveX: animWidth
-        })
-        startAnim()
+        setPreMX(animWidth)
+        if (autoPlay) startAnim()
       },
       { capture: false, once: true }
     )
@@ -131,8 +119,8 @@ const Carousel = ({
   }
 
   const onTouchStart = event => {
-    if (timer) clearTimeout(timer)
-    if (disabledGesture || !state.canMove) {
+    clearTimer()
+    if (disabledGesture || !canMove) {
       return
     }
     setTouch({
@@ -147,38 +135,29 @@ const Carousel = ({
     const touchEndX = event.changedTouches[0].pageX
     const { offsetWidth } = carouselDom
     let tempMoveX = touchEndX - touch.touchStartX
-    let tempCanMove = state.canMove
 
     const moveY = event.changedTouches[0].pageY - touch.touchStartY
     const absMoveX = Math.abs(tempMoveX)
     const sty = { ...style }
 
     if (absMoveX < 5 || (absMoveX >= 5 && moveY >= 1.73 * absMoveX)) {
-      tempCanMove = false
+      canMove = false
     } else if (event.cancelable) {
-      tempCanMove = true
+      canMove = true
       event.preventDefault()
     }
 
-    if (!tempCanMove) {
+    if (!canMove) {
       setTempMX(tempMoveX)
-      setState({
-        ...state,
-        canMove: tempCanMove
-      })
       return
     }
-    const moveX = tempMoveX + state.preMoveX
+    const moveX = tempMoveX + preMX
 
     if (
       !loop &&
       (moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1))
     ) {
       setTempMX(0)
-      setState({
-        ...state,
-        canMove: tempCanMove
-      })
       return
     }
 
@@ -187,30 +166,26 @@ const Carousel = ({
     sty.transform = `translate3d(${moveX}px, 0, 0)`
     setStyle(sty)
     setTempMX(tempMoveX)
-    setState({
-      ...state,
-      canMove: tempCanMove
-    })
   }
 
   const onTouchEnd = event => {
-    if (disabledGesture || !state.canMove) return
+    if (disabledGesture || !canMove) return
 
     const carouselDom = event.currentTarget
     const { offsetWidth } = carouselDom
     let animWidth =
       Math.abs(tempMX) > offsetWidth / 2
         ? tempMX > 0
-          ? state.preMoveX + offsetWidth
-          : state.preMoveX - offsetWidth
-        : state.preMoveX
+          ? preMX + offsetWidth
+          : preMX - offsetWidth
+        : preMX
     update(animWidth, offsetWidth)
   }
 
   useEffect(() => {
     if (React.Children.count(children) > 0) {
-      changeIndex(true)
-      startAnim()
+      go(index, true)
+      if (autoPlay) startAnim()
     }
   }, [])
 
@@ -275,7 +250,7 @@ Carousel.propTypes = {
 Carousel.defaultProps = {
   disabledGesture: false,
   time: 2000,
-  dots: true,
+  dots: false,
   loop: false,
   autoPlay: false,
   index: 0

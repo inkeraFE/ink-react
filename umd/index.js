@@ -576,6 +576,8 @@
   var css$9 = ".ink-carousel{position:relative;overflow:hidden}.ink-carousel .carousel-wrapper{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-transition-property:-webkit-transform;transition-property:-webkit-transform;transition-property:transform;transition-property:transform,-webkit-transform;list-style:none;margin:0;padding:0}.ink-carousel .carousel-wrapper .carousel-item{-webkit-box-flex:1;-webkit-flex:1 0 100%;-ms-flex:1 0 100%;flex:1 0 100%;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.ink-carousel .pagination-point-wrapper{position:absolute;bottom:15px;left:50%;-webkit-transform:translate3d(-50%,0,0);transform:translate3d(-50%,0,0);list-style:none;margin:0;padding:0}.ink-carousel .pagination-point-wrapper .point{display:inline-block;width:8px;height:8px;border-radius:100%;margin:0 4px;background:#000;opacity:.6}.ink-carousel .pagination-point-wrapper .point.is-active{background:#f0f1f2}";
   styleInject(css$9);
 
+  var timer = null;
+
   var Carousel = function Carousel(_ref) {
     var children = _ref.children,
         disabledGesture = _ref.disabledGesture,
@@ -603,78 +605,69 @@
         tempMX = _useState6[0],
         setTempMX = _useState6[1];
 
-    var _useState7 = React.useState({
+    var _useState7 = React.useState(0),
+        _useState8 = _slicedToArray(_useState7, 2),
+        preMX = _useState8[0],
+        setPreMX = _useState8[1];
+
+    var _useState9 = React.useState({
       touchStartX: 0,
       touchStartY: 0
     }),
-        _useState8 = _slicedToArray(_useState7, 2),
-        touch = _useState8[0],
-        setTouch = _useState8[1];
-
-    var _useState9 = React.useState({
-      preMoveX: 0,
-      canMove: true
-    }),
         _useState10 = _slicedToArray(_useState9, 2),
-        state = _useState10[0],
-        setState = _useState10[1];
+        touch = _useState10[0],
+        setTouch = _useState10[1];
 
-    var timer = null;
+    var canMove = true;
     var carouselRef = React.useRef(null);
 
-    var changeIndex = function changeIndex(isInit) {
+    var clearTimer = function clearTimer() {
+      timer && clearTimeout(timer);
+      timer = null;
+    };
+
+    var go = function go(index, isInit) {
       var offsetWidth = carouselRef.current.offsetWidth;
       var preMoveX = -1 * offsetWidth * index;
       setStyle({
         transitionDuration: !isInit ? '300ms' : '0ms',
         transform: "translate3d(".concat(preMoveX, "px, 0, 0)")
       });
-      setState(_objectSpread2({}, state, {
-        preMoveX: preMoveX
-      }));
+      setPreMX(preMoveX);
     };
 
     var handleLoop = function handleLoop(moveX) {
       var offsetWidth = carouselRef.current.offsetWidth;
-      var preMoveX = state.preMoveX;
+      var preMoveX = preMX;
 
       var sty = _objectSpread2({}, style);
 
       if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
         preMoveX = 0;
         sty.transform = 'translate3d(0, 0, 0)';
+        setStyle(sty);
       } else if (moveX > 0) {
         preMoveX = -1 * offsetWidth * (_carouseLength - 1);
       }
 
-      setStyle(sty);
-      setState(_objectSpread2({}, state, {
-        preMoveX: preMoveX,
-        style: style
-      }));
+      setPreMX(preMoveX);
     };
 
-    var animation = function animation() {
+    var next = function next() {
+      if (timer) return;
       var offsetWidth = carouselRef.current.offsetWidth;
       timer = setTimeout(function () {
-        var moveX;
         var updateTimer;
-        var preMoveX = state.preMoveX;
-        var compareMovex = preMoveX - offsetWidth;
+        var preMoveX = preMX;
+        var moveX = preMoveX - offsetWidth;
 
         if (loop) {
-          handleLoop(compareMovex);
-          moveX = preMoveX - offsetWidth;
-        } else if (Math.abs(compareMovex) > offsetWidth * (_carouseLength - 1)) {
+          handleLoop(moveX);
+        } else if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
           preMoveX = 0;
           moveX = 0;
-        } else {
-          moveX = preMoveX - offsetWidth;
+          setPreMX(preMoveX);
         }
-
-        setState(_objectSpread2({}, state, {
-          preMoveX: preMoveX
-        }));
 
         if (loop) {
           // 切换延迟一帧
@@ -689,8 +682,8 @@
     };
 
     var startAnim = function startAnim() {
-      if (timer) clearTimeout(timer);
-      if (autoPlay) animation();
+      clearTimer();
+      next();
     };
 
     var listenAnimEnd = function listenAnimEnd(animWidth, sty) {
@@ -700,10 +693,8 @@
         style.transitionDuration = '0ms';
         setStyle(style);
         setTempMX(0);
-        setState(_objectSpread2({}, state, {
-          preMoveX: animWidth
-        }));
-        startAnim();
+        setPreMX(animWidth);
+        if (autoPlay) startAnim();
       }, {
         capture: false,
         once: true
@@ -727,9 +718,9 @@
     };
 
     var onTouchStart = function onTouchStart(event) {
-      if (timer) clearTimeout(timer);
+      clearTimer();
 
-      if (disabledGesture || !state.canMove) {
+      if (disabledGesture || !canMove) {
         return;
       }
 
@@ -745,34 +736,27 @@
       var touchEndX = event.changedTouches[0].pageX;
       var offsetWidth = carouselDom.offsetWidth;
       var tempMoveX = touchEndX - touch.touchStartX;
-      var tempCanMove = state.canMove;
       var moveY = event.changedTouches[0].pageY - touch.touchStartY;
       var absMoveX = Math.abs(tempMoveX);
 
       var sty = _objectSpread2({}, style);
 
       if (absMoveX < 5 || absMoveX >= 5 && moveY >= 1.73 * absMoveX) {
-        tempCanMove = false;
+        canMove = false;
       } else if (event.cancelable) {
-        tempCanMove = true;
+        canMove = true;
         event.preventDefault();
       }
 
-      if (!tempCanMove) {
+      if (!canMove) {
         setTempMX(tempMoveX);
-        setState(_objectSpread2({}, state, {
-          canMove: tempCanMove
-        }));
         return;
       }
 
-      var moveX = tempMoveX + state.preMoveX;
+      var moveX = tempMoveX + preMX;
 
       if (!loop && (moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1))) {
         setTempMX(0);
-        setState(_objectSpread2({}, state, {
-          canMove: tempCanMove
-        }));
         return;
       }
 
@@ -780,23 +764,20 @@
       sty.transform = "translate3d(".concat(moveX, "px, 0, 0)");
       setStyle(sty);
       setTempMX(tempMoveX);
-      setState(_objectSpread2({}, state, {
-        canMove: tempCanMove
-      }));
     };
 
     var onTouchEnd = function onTouchEnd(event) {
-      if (disabledGesture || !state.canMove) return;
+      if (disabledGesture || !canMove) return;
       var carouselDom = event.currentTarget;
       var offsetWidth = carouselDom.offsetWidth;
-      var animWidth = Math.abs(tempMX) > offsetWidth / 2 ? tempMX > 0 ? state.preMoveX + offsetWidth : state.preMoveX - offsetWidth : state.preMoveX;
+      var animWidth = Math.abs(tempMX) > offsetWidth / 2 ? tempMX > 0 ? preMX + offsetWidth : preMX - offsetWidth : preMX;
       update(animWidth, offsetWidth);
     };
 
     React.useEffect(function () {
       if (React__default.Children.count(children) > 0) {
-        changeIndex(true);
-        startAnim();
+        go(index, true);
+        if (autoPlay) startAnim();
       }
     }, []);
     var dotsArr = [];
@@ -849,7 +830,7 @@
   Carousel.defaultProps = {
     disabledGesture: false,
     time: 2000,
-    dots: true,
+    dots: false,
     loop: false,
     autoPlay: false,
     index: 0
