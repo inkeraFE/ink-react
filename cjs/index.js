@@ -577,13 +577,10 @@ Component.defaultProps = {
 var css$9 = ".ink-carousel{position:relative;overflow:hidden}.ink-carousel .carousel-wrapper{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-transition-property:-webkit-transform;transition-property:-webkit-transform;transition-property:transform;transition-property:transform,-webkit-transform;list-style:none;margin:0;padding:0}.ink-carousel .carousel-wrapper .carousel-item{-webkit-box-flex:1;-webkit-flex:1 0 100%;-ms-flex:1 0 100%;flex:1 0 100%;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.ink-carousel .pagination-point-wrapper{position:absolute;bottom:15px;left:50%;-webkit-transform:translate3d(-50%,0,0);transform:translate3d(-50%,0,0);list-style:none;margin:0;padding:0}.ink-carousel .pagination-point-wrapper .point{display:inline-block;width:8px;height:8px;border-radius:100%;margin:0 4px;background:#000;opacity:.6}.ink-carousel .pagination-point-wrapper .point.is-active{background:#f0f1f2}";
 styleInject(css$9);
 
-var timer = null;
-
 var Carousel = function Carousel(_ref) {
   var children = _ref.children,
       disabledGesture = _ref.disabledGesture,
       time = _ref.time,
-      autoPlay = _ref.autoPlay,
       dots = _ref.dots,
       index = _ref.index,
       loop = _ref.loop;
@@ -622,22 +619,22 @@ var Carousel = function Carousel(_ref) {
   var canMove = true;
   var carouselRef = React.useRef(null);
 
-  var clearTimer = function clearTimer() {
-    timer && clearTimeout(timer);
-    timer = null;
+  var isOutSide = function isOutSide(moveX, offsetWidth, _carouseLength) {
+    return moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1);
   };
 
-  var go = function go(index, isInit) {
+  var go = function go(index) {
     var offsetWidth = carouselRef.current.offsetWidth;
     var preMoveX = -1 * offsetWidth * index;
     setStyle({
-      transitionDuration: !isInit ? '300ms' : '0ms',
+      transitionDuration: '300ms',
       transform: "translate3d(".concat(preMoveX, "px, 0, 0)")
     });
+    setIndex(index);
     setPreMX(preMoveX);
   };
 
-  var handleLoop = function handleLoop(moveX) {
+  var fixLoop = function fixLoop(moveX) {
     var offsetWidth = carouselRef.current.offsetWidth;
     var preMoveX = preMX;
 
@@ -654,39 +651,6 @@ var Carousel = function Carousel(_ref) {
     setPreMX(preMoveX);
   };
 
-  var next = function next() {
-    if (timer) return;
-    var offsetWidth = carouselRef.current.offsetWidth;
-    timer = setTimeout(function () {
-      var updateTimer;
-      var preMoveX = preMX;
-      var moveX = preMoveX - offsetWidth;
-
-      if (loop) {
-        handleLoop(moveX);
-      } else if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
-        preMoveX = 0;
-        moveX = 0;
-        setPreMX(preMoveX);
-      }
-
-      if (loop) {
-        // 切换延迟一帧
-        updateTimer = setTimeout(function () {
-          update(moveX, offsetWidth);
-          clearTimeout(updateTimer);
-        }, 16);
-      } else {
-        update(moveX, offsetWidth);
-      }
-    }, time);
-  };
-
-  var startAnim = function startAnim() {
-    clearTimer();
-    next();
-  };
-
   var listenAnimEnd = function listenAnimEnd(animWidth, sty) {
     document.addEventListener('transitionend', function () {
       var style = _objectSpread2({}, sty);
@@ -695,7 +659,6 @@ var Carousel = function Carousel(_ref) {
       setStyle(style);
       setTempMX(0);
       setPreMX(animWidth);
-      if (autoPlay) startAnim();
     }, {
       capture: false,
       once: true
@@ -719,8 +682,6 @@ var Carousel = function Carousel(_ref) {
   };
 
   var onTouchStart = function onTouchStart(event) {
-    clearTimer();
-
     if (disabledGesture || !canMove) {
       return;
     }
@@ -756,12 +717,12 @@ var Carousel = function Carousel(_ref) {
 
     var moveX = tempMoveX + preMX;
 
-    if (!loop && (moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1))) {
+    if (!loop && isOutSide(moveX, offsetWidth, _carouseLength)) {
       setTempMX(0);
       return;
     }
 
-    if (loop) handleLoop(moveX);
+    if (loop) fixLoop(moveX);
     sty.transform = "translate3d(".concat(moveX, "px, 0, 0)");
     setStyle(sty);
     setTempMX(tempMoveX);
@@ -775,12 +736,6 @@ var Carousel = function Carousel(_ref) {
     update(animWidth, offsetWidth);
   };
 
-  React.useEffect(function () {
-    if (React__default.Children.count(children) > 0) {
-      go(index, true);
-      if (autoPlay) startAnim();
-    }
-  }, []);
   React.useEffect(function () {
     if (React__default.Children.count(children) >= index) {
       go(index);
@@ -829,7 +784,6 @@ Carousel.propTypes = {
   disabledGesture: PropTypes.bool,
   time: PropTypes.number,
   loop: PropTypes.bool,
-  autoPlay: PropTypes.bool,
   dots: PropTypes.bool,
   index: PropTypes.number
 };
@@ -838,7 +792,6 @@ Carousel.defaultProps = {
   time: 2000,
   dots: false,
   loop: false,
-  autoPlay: false,
   index: 0
 };
 

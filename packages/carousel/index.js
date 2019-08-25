@@ -4,18 +4,7 @@ import classNames from 'classnames'
 import './style.less'
 
 // todo
-
-let timer = null
-
-const Carousel = ({
-  children,
-  disabledGesture,
-  time,
-  autoPlay,
-  dots,
-  index,
-  loop
-}) => {
+const Carousel = ({ children, disabledGesture, time, dots, index, loop }) => {
   const [style, setStyle] = useState({
     transitionDuration: '0ms',
     transform: 'translate3d(0, 0, 0)'
@@ -32,21 +21,20 @@ const Carousel = ({
   let canMove = true
   const carouselRef = useRef(null)
 
-  const clearTimer = () => {
-    timer && clearTimeout(timer)
-    timer = null
-  }
+  const isOutSide = (moveX, offsetWidth, _carouseLength) =>
+    moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1)
 
-  const go = (index, isInit) => {
+  const go = index => {
     const { offsetWidth } = carouselRef.current
     const preMoveX = -1 * offsetWidth * index
     setStyle({
-      transitionDuration: !isInit ? '300ms' : '0ms',
+      transitionDuration: '300ms',
       transform: `translate3d(${preMoveX}px, 0, 0)`
     })
+    setIndex(index)
     setPreMX(preMoveX)
   }
-  const handleLoop = moveX => {
+  const fixLoop = moveX => {
     const { offsetWidth } = carouselRef.current
     let preMoveX = preMX
     const sty = { ...style }
@@ -60,37 +48,6 @@ const Carousel = ({
     setPreMX(preMoveX)
   }
 
-  const next = () => {
-    if (timer) return
-    const { offsetWidth } = carouselRef.current
-    timer = setTimeout(() => {
-      let updateTimer
-      let preMoveX = preMX
-      let moveX = preMoveX - offsetWidth
-      if (loop) {
-        handleLoop(moveX)
-      } else if (Math.abs(moveX) > offsetWidth * (_carouseLength - 1)) {
-        preMoveX = 0
-        moveX = 0
-        setPreMX(preMoveX)
-      }
-      if (loop) {
-        // 切换延迟一帧
-        updateTimer = setTimeout(() => {
-          update(moveX, offsetWidth)
-          clearTimeout(updateTimer)
-        }, 16)
-      } else {
-        update(moveX, offsetWidth)
-      }
-    }, time)
-  }
-
-  const startAnim = () => {
-    clearTimer()
-    next()
-  }
-
   const listenAnimEnd = (animWidth, sty) => {
     document.addEventListener(
       'transitionend',
@@ -100,7 +57,6 @@ const Carousel = ({
         setStyle(style)
         setTempMX(0)
         setPreMX(animWidth)
-        if (autoPlay) startAnim()
       },
       { capture: false, once: true }
     )
@@ -121,7 +77,6 @@ const Carousel = ({
   }
 
   const onTouchStart = event => {
-    clearTimer()
     if (disabledGesture || !canMove) {
       return
     }
@@ -155,15 +110,12 @@ const Carousel = ({
     }
     const moveX = tempMoveX + preMX
 
-    if (
-      !loop &&
-      (moveX > 0 || Math.abs(moveX) > offsetWidth * (_carouseLength - 1))
-    ) {
+    if (!loop && isOutSide(moveX, offsetWidth, _carouseLength)) {
       setTempMX(0)
       return
     }
 
-    if (loop) handleLoop(moveX)
+    if (loop) fixLoop(moveX)
 
     sty.transform = `translate3d(${moveX}px, 0, 0)`
     setStyle(sty)
@@ -183,13 +135,6 @@ const Carousel = ({
         : preMX
     update(animWidth, offsetWidth)
   }
-
-  useEffect(() => {
-    if (React.Children.count(children) > 0) {
-      go(index, true)
-      if (autoPlay) startAnim()
-    }
-  }, [])
 
   useEffect(() => {
     if (React.Children.count(children) >= index) {
@@ -227,7 +172,6 @@ const Carousel = ({
     )
   }
   const _carouseLength = React.Children.count(children) + Number(loop)
-
   return (
     <div className="ink-carousel">
       <ul
@@ -250,7 +194,6 @@ Carousel.propTypes = {
   disabledGesture: PropTypes.bool,
   time: PropTypes.number,
   loop: PropTypes.bool,
-  autoPlay: PropTypes.bool,
   dots: PropTypes.bool,
   index: PropTypes.number
 }
@@ -260,7 +203,6 @@ Carousel.defaultProps = {
   time: 2000,
   dots: false,
   loop: false,
-  autoPlay: false,
   index: 0
 }
 
